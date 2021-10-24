@@ -1,0 +1,28 @@
+lines = []
+
+with open('test.txt') as f:
+    lines = f.readlines()
+
+#count = 0
+#for line in lines:
+#    count += 1
+#    print(f'line {count}: {line}')
+#
+#words = lines[1].split()
+#for word in words:
+#    print(word)
+
+# hardcoded first, will easily break with any change in formatting
+month = lines[1].split()[0]
+year = lines[1].split()[1]
+
+# these are the lines with anesthesiologists, again hardcoded
+# strip the whitespace from beginning and end
+for i in range(4,27):
+    if (i % 2 == 1):
+        anesthesiologist = lines[i].split()[0]
+        for day in range(1,32): # hardcoded 31 days
+            assignment = lines[i].split()[day] # problem is that some days are spaces...
+            print(f'{year} {month} {day} {anesthesiologist} {assignment}')
+    else:
+        pass

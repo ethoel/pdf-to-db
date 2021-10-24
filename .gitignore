@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Ignore website, db files, pdf files, txt files
+www.seattleanesthesia.net/
+*.db
+*.pdf
+*.txt

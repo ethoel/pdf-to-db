@@ -1,0 +1,66 @@
+import camelot
+import sqlite3
+from datetime import datetime
+from datetime import date, timedelta
+
+# download pdf with wget
+
+# decrypt pdf with qpdf
+# qpdf --password=5290 --decrypt test.pdf camtest.pdf
+
+# convert pdf to text with pdftotext
+# pdftotext camtest.pdf
+
+# create or connect to database and create assignments table if not exist
+connection = sqlite3.connect('schedule.db')
+cursor = connection.cursor();
+cursor.execute('''
+        CREATE TABLE IF NOT EXISTS assignments (
+            assignment_id INTEGER PRIMARY KEY,
+            date TEXT NOT NULL,
+            anesthesiologist TEXT NOT NULL,
+            assignment TEXT NOT NULL,
+            UNIQUE(date, anesthesiologist));''')
+
+#camelot --pages 1 stream -T 0,518,729,223 -C 185,202,219,236,252,269,286,302,320,336,353,370,387,404,420,437,452,469,486,504,522,540,555,572,588,606,623,640,656,674,688,707,724,741 -plot grid advance_schedule.pdf
+
+# get table arrays from pdf
+tables = camelot.read_pdf('advance_schedule.pdf', pages='all', flavor='stream',
+        split_text=True,
+        table_areas=['0,518,729,223'])
+        #columns=['''185,202,219,236,252,269,286,302,320,336,353,370,387,404,420,437,452,469,486,504,522,540,555,572,588,606,623,640,656,674,688,707,724'''])
+tables = [table.df.to_numpy() for table in tables]
+
+# get the first date in advance schedule, table 0, row 2, value 0
+#raw_date = tables[0][2][0]
+#raw_date = raw_date.split('/')
+# create a date from raw_date passing year, month, day
+#first_date = date(int(raw_date[2]), int(raw_date[0]), int(raw_date[1]))
+
+for assignments in tables:
+    #print(first_date)
+    for row in assignments[:]:
+        if row[0].strip() == '': continue # ignore rows without anesthesiologist
+        if row[0].strip() == 'W': break # rows 'W' and on should be ignored
+
+        # get the name of the anesthesiologist. if name/.../nameN, use nameN
+        #anes = row[0].split('/')[::-1][0].strip()
+        anes = row[0].strip()
+        print(repr(f"ROW: {anes} ENDANES"), end= ' ')
+        # set the date to the first date of the table
+        #cur_date = first_date
+        # add the assignments for each anesthesiologist
+        for assignment in row[1:]:
+            assignment = assignment.strip()
+            print(repr(f"{assignment: >2s}"), end=' ')
+            #print("test", end=' ')
+            #cursor.execute(f'''
+            #    REPLACE INTO assignments (date, anesthesiologist, assignment)
+            #    VALUES ('{cur_date}', '{anes}', '{assignment}');''');
+            #cur_date = cur_date + timedelta(days=1)
+        print("ENDROW")
+    #first_date = cur_date
+    print("######################")
+
+connection.commit()
+connection.close()
